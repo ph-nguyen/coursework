@@ -1,7 +1,7 @@
 library(tidyverse)
 library(lubridate)
 
-trips <- read_csv(file= "C:/Users/Phuong Nguyen/Documents/ds3/coursework/week1/201402-citibike-tripdata.csv")
+trips <- read_csv('201402-citibike-tripdata.csv')
 
 # replace spaces in column names with underscores
 
@@ -32,11 +32,11 @@ min(as.numeric(trips$birth_year), na.rm =  TRUE)
 
 # use filter and grepl to find all trips that either start or end on broadway
 #find all string match with grepl. Then filter by condition to find row then access row.
-filter(df, grepl('Broadway', start.station.name) | grepl('Broadway', end.station.name)) %>% select(start.station.name, end.station.name)
+filter(trips, grepl('Broadway', start_station_name) | grepl('Broadway', end_station_name)) %>% select(start_station_name, end_station_name)
 
 
 # do the same, but find all trips that both start and end on broadway
-filter(df, grepl('Broadway', start.station.name) , grepl('Broadway', end.station.name)) %>% select(start.station.name, end.station.name)
+filter(trips, grepl('Broadway', start_station_name) , grepl('Broadway', end_station_name)) %>% select(start_station_name, end_station_name)
 
 # find all unique station names
 
@@ -45,13 +45,13 @@ sapply(df, function(x) unique(x)) %>%
 
 # count the number of trips by gender
 
-summarize(group_by(df, gender),
+summarize(group_by(trips, gender),
           count = n())
 
 # compute the average trip time by gender
-summarize(group_by(df, gender),
+summarize(group_by(trips, gender),
           mean_trip_gen= mean(gender))
-df%>% group_by(df$gender) %>% summarize(count(n))
+trips%>% group_by(gender) %>% summarize(count(n))
 
 # comment on whether there's a (statistically) significant difference
 
