@@ -3,3 +3,5 @@
 *~
 *.zip
 .ipynb_checkpoints
+*.RData
+week1/.RData

@@ -1,1 +1,0 @@
-trips <- read.csv(file= "C:\Users\Phuong Nguyen\Documents\ds3\coursework\week1\201402-citibike-tripdata.csv",header=TRUE)
