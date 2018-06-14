@@ -154,7 +154,7 @@ trips_with_weather %>% mutate(hour = hour(starttime)) %>%
 
 # repeat this, but now split the results by day of the week (Monday, Tuesday, ...) or weekday vs. weekend days
 # hint: use the wday() function from the lubridate package
-trips_with_weather %>% mutate(hour = hour(starttime), dayw= wday(ymd)) %>%
+trips_with_weather %>% mutate(hour = hour(starttime), dayw= wday(ymd, label = T)) %>%
   group_by(ymd, hour, dayw) %>% 
   count() %>%
   group_by(hour, dayw) %>%
