@@ -20,22 +20,22 @@ trips %>% View
 
 # plot the distribution of trip times across all rides
 
-ggplot(trips, aes(x = tripduration)) +
+filter (trips, tripduration < quantile(tripduration, .99) ) %>% 
+  ggplot(aes(x = tripduration/60)) +
   geom_histogram() +
   scale_x_log10(label = comma) +
   scale_y_continuous(label = comma) +
-  #coord_cartesian( xlim = (c(0,10000))) +
   xlab ('Trip duration') +
   ylab('Number of trips')
   
 #might want to change the time to mins or hour and change the spread of x axis
 
 # plot the distribution of trip times by rider type
- 
-ggplot(trips, aes(x = tripduration)) +
+filter (trips, tripduration < quantile(tripduration, .99) ) %>% 
+  ggplot(aes(x = tripduration)) +
   geom_histogram() +
   scale_x_log10(label = comma) +
-  facet_wrap(~ usertype) +
+  facet_wrap(~ usertype, scale= 'free_y') +
   xlab ('Trip times') +
   ylab('Number of trips')
 
@@ -50,9 +50,8 @@ trips %>%
   mutate(age = year(ymd) - birth_year) %>% 
   group_by(age) %>%
   summarise(count = n()) %>%
-  ggplot(aes(x= age, y= count, fill = age)) +
-  geom_bar(stat = "identity") +
-  scale_fill_gradient(low="#FF8888",high="#FF0000") +
+  ggplot(aes(x= age, y= count, color = gender)) +
+  geom_point() +
   scale_y_continuous(label = comma) +
   xlim(c(16,80)) +
   ylab('Number of trips')
@@ -67,8 +66,9 @@ trips %>%
   spread('gender','count') %>%
   mutate(ratio = Male/Female) %>%
   ggplot(aes(x= age, y= ratio)) +
-  geom_bar(stat = "identity") +
-  xlim(c(16,80)) +
+  geom_point() +
+  geom_smooth()+
+  xlim(c(16,70)) +
   ylab('Number of trips')
   
 ########################################
@@ -143,12 +143,12 @@ trips_with_weather %>% mutate(hour = hour(starttime)) %>%
 # plot the above
 trips_with_weather %>% mutate(hour = hour(starttime)) %>%
   group_by(ymd, hour) %>% 
-  count() %>%
+  summarize(tripnum = n()) %>%
   group_by(hour) %>%
-  summarize (avg= mean (n), stdv= sd (n)) %>%
-  gather("stat", "val", avg, stdv) %>%
-  ggplot(aes(x= hour, y= val, color= stat)) +
+  summarize (avg= mean (tripnum), stdv= sd (tripnum)) %>%
+  ggplot(aes(x= hour , y= avg)) +
   geom_line() +
+  geom_ribbon(aes(ymin = avg - stdv, ymax = avg + stdv), alpha= 0.2) +
   xlab ('Hour in Day') +
   ylab('Statistics')
 
@@ -159,9 +159,9 @@ trips_with_weather %>% mutate(hour = hour(starttime), dayw= wday(ymd, label = T)
   count() %>%
   group_by(hour, dayw) %>%
   summarize (avg= mean (n), stdv= sd (n)) %>%
-  gather("stat", "val", avg, stdv) %>%
-  ggplot(aes(x= hour, y= val, color= stat)) +
-  geom_point()+
+  ggplot(aes(x= hour, y= avg)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = avg - stdv, ymax = avg + stdv), alpha= 0.2) +
   facet_wrap(~ dayw) +
   xlab ('Hour in Day') +
   ylab('Statistics')
