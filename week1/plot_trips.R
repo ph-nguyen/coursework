@@ -44,6 +44,7 @@ trips %>% group_by(ymd) %>% summarize(count= n()) %>%
   ggplot (aes(x= ymd, y= count)) +
   geom_point()
 
+<<<<<<< HEAD
 # plot the total number of trips (on the y axis) by age (on the x axis) and age (indicated with color)
 library(lubridate)
 trips %>% 
@@ -56,6 +57,9 @@ trips %>%
   xlim(c(16,80)) +
   ylab('Number of trips')
 
+=======
+# plot the total number of trips (on the y axis) by age (on the x axis) and gender (indicated with color)
+>>>>>>> a6ef8d2ffa43bd55c395c04f3cf98c7b09cb457d
 
 # plot the ratio of male to female trips (on the y axis) by age (on the x axis)
 # hint: use the spread() function to reshape things to make it easier to compute this ratio
