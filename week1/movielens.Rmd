@@ -30,19 +30,10 @@ theme_set(theme_bw())
 =======
 Read data from the `ratings.csv` file
 ```{r load-data}
-ratings <- read_csv('ratings.csv',
-                    col_names = c('user_id','movie_id','rating','timestamp'))
-```
->>>>>>> a6ef8d2ffa43bd55c395c04f3cf98c7b09cb457d:week1/movielens.Rmd
-
-Loaded `r format(object.size(ratings), units="Mb")` of ratings data, containing `r format(nrow(ratings), big.mark = ",")` ratings. Here's a preview:
-```{r preview-data}
-head(ratings) %>% kable()
-```
-
+ 
 # Summary statistics
 
-```{r dist-ratings}
+``` {r dist-ratings}
 # plot the distribution of rating values (slide 21)
 ratings %>% 
   group_by(rating) %>% 
@@ -68,11 +59,11 @@ ratings %>% group_by(movie_id) %>% summarise(mean_rating = mean(rating), count =
 ratings %>% 
   group_by(movie_id) %>% 
   summarise(num_rating = n()) %>%
-  ggplot(aes(x=movie_id, y=num_rating)) +
-  geom_point() +
+  ggplot(aes(x=num_rating)) +
+  geom_histogram() +
   scale_x_log10(label=comma) +
   scale_y_continuous(label= comma)+
-  xlab('Movie')+
+  xlab('Movie rating')+
   ylab('Number of rating')
 
 ```
@@ -83,8 +74,8 @@ ratings %>%
 ratings %>% 
   group_by(movie_id) %>% 
   summarise(mean_rating = mean(rating)) %>% 
-  ggplot(aes(x=movie_id, y= mean_rating)) +
-  ?geom_density() +
+  ggplot(aes(x=mean_rating)) +
+  geom_density(fill="black") +
   xlab('Mean rating by movie')
 
 ```
@@ -93,13 +84,19 @@ ratings %>%
 # rank movies by popularity and compute the cdf, or fraction of movies covered by the top-k moves (slide 25)
 # hint: use dplyr's rank and arrange functions, and the base R sum and cumsum functions
 # store the result in a new data frame so you can use it in creating figure 2 from the paper below
+rating_count= nrow(ratings)
 ratings %>% group_by(movie_id) %>% 
   summarise(num_rating = n()) %>% 
-  mutate(movie_rank= rank(num_rating, ties.method = c("first"))) %>%
-  arrange(movie_rank)
-
+  mutate(movie_rank= rank(desc(num_rating), ties.method = c("first"))) %>%
+  arrange(movie_rank) %>% mutate(cs = cumsum(num_rating)/rating_count) %>%
+  ggplot(aes(movie_rank, cs)) +
+  geom_line()+
+  ylab('CDF') +
+  xlab('Movie Rank') +
+  scale_y_continuous(label=comma)
 
 # plot the CDF of movie popularity
+
 ```
 
 
@@ -107,7 +104,6 @@ ratings %>% group_by(movie_id) %>%
 
 ```{r aggregate-by-user}
 # aggregate ratings by user, computing mean and number of ratings
-
 ratings %>% group_by(user_id) %>%
   summarize(num_rating= n(), mean_rating= mean(rating))
 ```
@@ -118,8 +114,13 @@ ratings %>% group_by(user_id) %>%
 
 ratings %>% group_by(user_id) %>%
   summarize(num_rating= n()) %>%
-  ggplot(aes(x=user_id, y=num_rating)) +
-  geom_point()
+  filter(num_rating < quantile(num_rating, .99)) %>%
+  ggplot(aes(x=num_rating)) +
+  geom_histogram()+
+  scale_x_log10(label=comma) +
+  scale_y_continuous(label= comma)+
+  xlab('User Activity')+
+  ylab('Number of rating')
 
 ```
 
