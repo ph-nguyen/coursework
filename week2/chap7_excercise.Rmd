@@ -1,0 +1,45 @@
+---
+title: "Q7.1_chap7"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+pop2 <- read.csv('pop2.csv')
+str(pop2)
+head(pop2)
+
+# Compute the population average of the variable “bmi”.
+mean(pop2$bmi)
+
+# Compute the population standard deviation of the variable “bmi”.
+sd(pop2$bmi)
+
+# Compute the expectation of the sampling distribution for the sample average of the variable.
+
+X_bar <- rep(0,10^5)
+for (i in 1:10^5) { 
+  X_samp <- sample(pop2$bmi, 150)
+  X_bar[i] <- mean (X_samp)
+}
+mean(X_bar)
+
+# Compute the standard deviation of the sampling distribution for the sample average of the variable.
+for (i in 1:10^5) { 
+  X_samp <- sample(pop2$bmi, 150)
+  X_bar[i] <- mean (X_samp)
+}
+sd(X_bar)
+
+# Identify, using simulations, the central region that contains 80% of the sampling distribution of the sample average.
+
+for (i in 1:10^5) { 
+  X_samp <- sample(pop2$bmi, 150)
+  X_bar[i] <- mean (X_samp)
+} 
+quantile(X_bar, probs = c(0.1, 0.9))
+
+# Identify, using the Central Limit Theorem, an approximation of the central region that contains 80% of the sampling distribution of the sample average.
+qnorm(c(0.1, 0.9), mean(X_bar), sd(X_bar))
+
+```

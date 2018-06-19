@@ -1,0 +1,124 @@
+#---
+title: "OrangeJuice"
+output: html_document
+---
+
+```{r}
+
+oj <- read.csv('oj.csv')
+str(oj)
+```
+
+``` {r}
+library(ggplot2)
+#a.	Make a box plot of price.
+
+ggplot(oj, aes(x= "", y=price)) + 
+  geom_boxplot()
+
+```
+
+```{r}
+#b.	Make a box plot of log price.
+library(tidyverse)
+oj %>% mutate(logprice = log(price)) %>% 
+  ggplot(aes(x="", logprice)) + 
+  geom_boxplot()
+  
+```
+
+```{r}
+#c.	Make a box plot of price, but separate out each brand.
+
+ggplot(oj, aes(factor(brand), price)) + 
+  geom_boxplot(aes(fill = factor(brand)))
+
+```
+
+``` {r}
+#d.	Do the same for log price. 
+oj %>% mutate(logprice = log(price)) %>% 
+  ggplot(aes(factor(brand), logprice)) + 
+  geom_boxplot(aes(fill = factor(brand)))
+
+#e.	What do these graphs tell you about the variation in price? Why do the log plots look different? Do you find them more/less informative?
+
+```
+The log price is more informative because: the variance between log group looks identical and the outliers are more spread out. Hence, we can tell the variance within group better. 
+```{r}
+#	Plot logmove (log quantity) vs. log(price) for each brand.  For this one the appropriate second part of the ggplot command will be: + geom_point(aes(color = factor(var_name)))
+oj %>% mutate(logprice = log(price)) %>% 
+  ggplot(aes(logmove, logprice)) + 
+  geom_point(aes(color = factor(brand)))
+
+#i.	What do insights can you derive that were not apparent before?
+
+```
+The lower the price, the more quantity sold. However, at the same level of price, the more well-known the brand, the more quantity sold.
+
+```{r}
+# a.	Do a regression of log quantity on log price. How well does the model fit? What is the elasticity, does it make sense?
+
+reg_mod <- oj %>% mutate(logprice = log(price)) %>% lm(formula= logmove ~ logprice)
+summary (reg_mod)
+
+oj <- oj %>% mutate(logprice = log(price))
+
+```
+```{r}
+#add in an intercept term for each brand (add brand to the regression)
+intercept_reg_mod <- lm(formula= logmove ~ logprice + brand, data = oj)
+summary(intercept_reg_mod)
+
+```
+
+```{r}
+#figure out a way to allow the elasticities to differ by brand
+interaction_reg_mod <- lm(formula= logmove ~ logprice + brand + logprice*brand, data = oj)
+summary(interaction_reg_mod)
+```
+
+```{r}
+## 80% of the sample size
+smp_size <- floor(0.8 * nrow(oj))
+
+## set the seed to make your partition reproducible
+set.seed(123)
+train_ind <- sample(seq_len(nrow(oj)), size = smp_size)
+
+train <- data.frame(oj[train_ind, ])
+test <- data.frame(oj[-train_ind, ])
+
+interaction_reg_train <- lm(formula= logmove ~ logprice + brand + logprice*brand, data = train)
+summary(interaction_reg_train)
+
+y_hat <- predict(interaction_reg_train, newx = test)
+
+```
+
+According to the plot, Minute Maid is featured the most accross brand over the time.
+```{r}
+oj %>% group_by(store, brand,feat) %>%
+  summarise(count= n()) %>% filter(feat == 1) %>%
+  ggplot(aes(store, count, color= as.factor(brand), position= "jitter")) +
+  geom_point()
+```
+
+```{r} 
+#	What is the average price and featured rate of each brand?  
+ oj %>% group_by(brand) %>% summarise(avg_price= mean(price), avg_feat= mean(feat))
+
+```
+```{r}
+#incorporate the feature variable into our regression
+intercept_reg_mod2 <- lm(formula= logmove ~ logprice * brand + feat, data = oj)
+ 
+interaction_reg_mod2 <- lm(formula= logmove ~ logprice * brand + feat + feat*logprice, data = oj)
+summary(interaction_reg_mod2)
+
+socio_mod <- lm(formula= logmove ~ logprice * brand + feat + feat*logprice + AGE60, data = oj)
+summary(socio_mod)
+
+```
+
+

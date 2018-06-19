@@ -104,6 +104,7 @@ ggplot(sim_power, aes(Number_Obs)) + geom_line(aes(y=st_error),colour = "red")
   
 
 
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
