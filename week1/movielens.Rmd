@@ -19,19 +19,22 @@ theme_set(theme_bw())
 ```
 
 # Load and preview data
+Read data from the `ratings.csv` file
 
-# for reference: same thing, using base R functions and explicitly setting column information
-   ratings <- read.delim('ratings.csv',
+
+```{r load-data}
+  ratings <- read.delim('ratings.csv',
                          sep=',',
                          header=F,
                          col.names=c('user_id','movie_id','rating','timestamp'),
                          colClasses=c('integer','integer','numeric','integer'))
+``` 
 
-#Read data from the `ratings.csv` file
+```{r preview - data}
+head(ratings) %>% kable()
+```
 
-```{r load-data}
- 
-# Summary statistics
+# Summary Statistics
 
 ``` {r dist-ratings}
 # plot the distribution of rating values (slide 21)
