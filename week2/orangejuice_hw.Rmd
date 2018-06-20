@@ -83,7 +83,7 @@ summary(interaction_reg_mod)
 smp_size <- floor(0.8 * nrow(oj))
 
 ## set the seed to make your partition reproducible
-set.seed(123)
+set.seed(1)
 train_ind <- sample(seq_len(nrow(oj)), size = smp_size)
 
 train <- data.frame(oj[train_ind, ])
@@ -102,21 +102,28 @@ oj %>% group_by(store, brand,feat) %>%
   summarise(count= n()) %>% filter(feat == 1) %>%
   ggplot(aes(store, count, color= as.factor(brand), position= "jitter")) +
   geom_point()
+
+ggplot(oj, aes(feat, brand)) + geom_point(position = "jitter", aes(color= factor(brand)))
 ```
 
 ```{r} 
 #	What is the average price and featured rate of each brand?  
  oj %>% group_by(brand) %>% summarise(avg_price= mean(price), avg_feat= mean(feat))
 
+library(plyr)
+ddply(oj, .(brand,feat), summarise, mean_price= mean(price), sd_price=sd(price), obs= length(price))
+
+?glm
 ```
 ```{r}
 #incorporate the feature variable into our regression
-intercept_reg_mod2 <- lm(formula= logmove ~ logprice * brand + feat, data = oj)
- 
-interaction_reg_mod2 <- lm(formula= logmove ~ logprice * brand + feat + feat*logprice, data = oj)
+intercept_reg_mod2 <- lm(formula= logmove ~ log(price) * brand + feat, data = oj)
+summary(intercept_reg_mod2)
+
+interaction_reg_mod2 <- lm(formula= logmove ~ log(price) * brand + feat + feat*logprice, data = oj)
 summary(interaction_reg_mod2)
 
-socio_mod <- lm(formula= logmove ~ logprice * brand + feat + feat*logprice + AGE60, data = oj)
+socio_mod <- lm(formula= logmove ~ log(price) * brand + feat + feat*logprice + AGE60, data = oj)
 summary(socio_mod)
 
 ```

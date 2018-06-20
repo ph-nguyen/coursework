@@ -20,15 +20,15 @@ theme_set(theme_bw())
 
 # Load and preview data
 
-<<<<<<< HEAD:week1/movielens.R
 # for reference: same thing, using base R functions and explicitly setting column information
    ratings <- read.delim('ratings.csv',
                          sep=',',
                          header=F,
                          col.names=c('user_id','movie_id','rating','timestamp'),
                          colClasses=c('integer','integer','numeric','integer'))
-=======
-Read data from the `ratings.csv` file
+
+#Read data from the `ratings.csv` file
+
 ```{r load-data}
  
 # Summary statistics
