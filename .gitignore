@@ -5,3 +5,6 @@
 .ipynb_checkpoints
 *.RData
 week1/.RData
+*.csv
+*.tsv
+*.dat

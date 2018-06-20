@@ -9,7 +9,7 @@ output:
     toc_depth: 3
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 library(scales)
 library(tidyverse)
 library(knitr)
@@ -42,8 +42,7 @@ ratings %>%
   group_by(rating) %>% 
   summarise(num_rating = n()) %>% 
   ggplot( aes(x= rating, y= num_rating)) +
-          geom_bar(stat = "identity") +
-  ylab('Numer of ratings')
+          geom_bar(stat = "identity") + scale_x_continuous(label=comma) + ylab('Numer of ratings')
          
 ```
 
