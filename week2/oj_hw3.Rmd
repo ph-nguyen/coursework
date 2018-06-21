@@ -1,0 +1,125 @@
+---
+title: "orangejuice_hw3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1)	Let's return to the orange juice dataset and investigate how store demographics are related to demand.
+a.	Take the "fully interacted" model from HW2 (logmove ~ log(price)*brand*feat) and add in the store demographics as linear features (e.g. + demo1 + demo2+.). 
+
+b.	What demographics are significantly (t>2) related to demand? 
+All demographics are significantly related to demand.
+
+c.	How much did the adjusted R-squared improve with the addition of these variables?
+it improves from 53.52% to 58.48%
+
+```{r}
+oj <- read.csv('oj.csv')
+library(ggplot2)
+library(tidyverse)
+
+interact_reg_mod <- lm(formula= logmove ~ log(price) * brand * feat, data = oj)
+summary(interact_reg_mod)$adj.r.squared
+
+interact_reg_mod2 <- lm(formula= logmove ~ log(price) * brand * feat + AGE60 + EDUC + ETHNIC + INCOME + HHLARGE + WORKWOM + HVAL150 + SSTRDIST + SSTRVOL + CPDIST5 + CPWVOL5, data = oj)
+summary(interact_reg_mod2)$adj.r.squared
+
+```
+2)	Let's focus on two variables HVAL150 ("percent of HHs with homes >$150K") and one of your choosing. 
+a.	What are the means and percentiles of each of these variables?
+
+```{r}
+summary(oj$HVAL150)
+summary(oj$AGE60)
+```
+
+b.	Using your coefficient estimates from the regression in 1b:
+i.	If we move from the median value of HVAL150 to the 75th percentile (3rd quartile), how much does log(quantity) change each week on average? (what is the change in quantity)
+
+```{r}
+coef(interact_reg_mod2)["HVAl150"] 
+summary(oj$HVAL150)["3rd Qu."]
+
+exp(coef(interact_reg_mod2)["HVAL150"]*(summary(oj$HVAL150)["3rd Qu."]-summary(oj$HVAL150)["Median"]))
+# 1.067301
+exp(coef(interact_reg_mod2)["EDUC"]*(summary(oj$EDUC)["3rd Qu."]-summary(oj$EDUC)["Median"]))
+# 1.053987
+exp(coef(interact_reg_mod2)["AGE60"]*(summary(oj$AGE60)["3rd Qu."]-summary(oj$AGE60)["Median"]))
+#1.092539 
+
+```
+
+
+iii.	Base on this analysis, which is the more important predictor of demand?
+Among three variables, age is the predictor that has the most impact in predicting the demand.
+
+c.	Now let's see if these variables impact price sensitivity. Add two interaction terms (with logprice) to the model to test this..  (Do this quickly.) 
+i.	What are the coefficients on the interaction terms? 
+```{r}
+interact_reg_mod3 <- lm(formula= logmove ~ log(price)  * AGE60 * HVAL150 , data = oj)
+summary(interact_reg_mod3)$coefficient
+
+interact_reg_mod4 <- lm(formula= logmove ~ log(price) * AGE60 * HVAL150 + EDUC + ETHNIC + INCOME + HHLARGE + WORKWOM + SSTRDIST + SSTRVOL + CPDIST5 + CPWVOL5, data = oj)
+
+library(modelr)
+mse(interact_reg_mod4, oj) #0.75
+mse(interact_reg_mod3, oj) #0.78
+  
+```
+ii.	Recall, positive values indicate lower price sensitivity and negative values indicate greater price sensitivity. Do your estimates make sense based on your intuition?
+Because the more household with more than $150k, the less price sensitive they are. Hence the coefficient of HVAL150 is positive. Similarly, the older the people, the more money they have, thus they are slightly less sensitive in term of price.
+
+iii.	What are the coefficient estimates on the constants HVAL150 and your variable of choice? How do they compare to your regression from 1b?
+
+4)	In the last assignment you calculated the MSE on a test set.  Let's expand that code to include 5-fold cross validation.  
+a.	Create 5 partitions of the data of equal size.
+b.	Create 5 training datasets using 80% of the data for each one.  
+c.	Estimate a complex model using OLS which includes price, featured, brand, brand*price and lagged price, all the sociodemographic variables and interactions of EDUC and HHSIZE with price on each of the training sets then the MSE on the test sets using the predict command.
+i.	Calculate the MSE for each run of the model by averaging across all the MSEs.
+
+```{r}
+# 5 partitions:
+num_fold = 5
+set.seed(1)
+rand <- cbind(sample(oj), row= seq(1:nrow(oj))%%num_fold)
+
+
+## 80% of the sample size
+smp_size <- floor(0.8 * nrow(oj))
+
+## set the seed to make your partition reproducible
+
+
+train_ind <- sample(seq_len(nrow(oj)), size = smp_size)
+
+train <- data.frame(oj[train_ind, ])
+test <- data.frame(oj[-train_ind, ])
+
+```
+
+```{r}
+#Example
+
+set.seed(1)
+rand_lag <- lagged[sample(nrow(lagged)),]
+
+rand_lag$rand_obs <- seq(1, nrow(rand_lag)
+                         )
+rand_lag$partition <- rand_lag$rand_obs %% folds +1
+MSEs <- c(1:folds)
+
+for (i in 1:5) {
+  oj_test <- rand_lag[which(rand_lag$partition ==i),]
+  oj_train <- anti_join(rand_lag, oj_test)
+  
+  reg <- lm(logmove~ log(price) + all var + EDUC*log(lagged_price), data= oj_train)
+  
+  #Predict y and calculate MSE[i]
+  
+}
+```
+
+```

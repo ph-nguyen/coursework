@@ -1,0 +1,107 @@
+---
+title: "bikeshare_hw4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1)	Using the bikeshare data, select which order of polynomial 1:10 best uses temperature to predict total bike ridership.
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+
+load('trips.RData')
+
+trip_per_day <- trips %>% group_by(ymd) %>% summarise(ride_daily = n())
+
+trip_weather <- left_join(trip_per_day,weather) %>% filter(date>0)
+
+  
+```
+a.	First use OLS and use the cross-validation code from class.
+
+```{r}
+set.seed(1)
+
+## 80% of the sample size
+
+smp_size <- floor(0.8 * nrow(trip_weather))
+
+## set the seed to make your partition reproducible
+
+
+train_ind <- sample(seq_len(nrow(trip_weather)), size = smp_size)
+
+train <- data.frame(trip_weather[train_ind, ])
+test <- data.frame(trip_weather[-train_ind, ])
+
+reg <- lm(formula = ride_daily ~ tmin, data =train)
+
+summary(reg)
+
+test$reg_hat <- predict(reg, newdata =test)
+
+R_quare <- cor(test$reg_hat, test$ride_daily)^2
+
+library(modelr)
+rmse(reg, test)
+rmse(reg, train)
+```
+ plotting the predicted and actual values as a function of the minimum temperature.
+
+```{r}
+test %>% ggplot( aes(tmin, ride_daily)) +
+  geom_line( aes(y= reg_hat)) +
+   geom_point()
+
+```
+
+```{r}
+reg_quad <- lm(ride_daily ~ poly(tmin,2), data=train)
+summary(reg_quad)
+
+RMSEs <- c()
+r_sq_train <- c()
+r_sq_test <- c()
+
+for (i in 1:5) {
+reg_poly <- lm(ride_daily ~ poly(tmin,i), data=train)
+r_sq_train [i] <- c(summary(reg_poly)$r.square)
+
+# Predict y
+
+test$reg_poly_hat <- predict(reg_poly, newdata= test)
+r_sq_test[i] <- c(cor(test$reg_poly_hat, test$ride_daily)^2)
+RMSE <- rmse(reg_poly, test)
+RMSEs[i] <- RMSE
+
+}
+
+```
+
+```{r}
+df1 <- data.frame(r_sq_test, r_sq_train) 
+
+df2 <- df1 %>% mutate(poly_degree = seq.int(nrow(df1)))
+   
+
+ggplot(aes(poly_degree), data=df2) + 
+  geom_line(aes(y=r_sq_train )) +
+  geom_line(aes(y=r_sq_test), color= "red")
+```
+
+```{r}
+
+#Polynomial degree 4 plot. fit one model for the value of k with the best performance in 6), and plot the actual and predicted values for this model.
+
+reg_poly4 <- lm(ride_daily ~ poly(tmin,4), data=train)
+test$reg_poly4_hat <- predict(reg_poly4, newdata= test)
+
+test %>% ggplot( aes(tmin, ride_daily)) +
+  geom_line( aes(y= reg_poly4_hat)) +
+   geom_point()
+
+```
