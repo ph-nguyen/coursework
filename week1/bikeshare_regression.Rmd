@@ -97,11 +97,11 @@ ggplot(aes(poly_degree), data=df2) +
 
 #Polynomial degree 4 plot. fit one model for the value of k with the best performance in 6), and plot the actual and predicted values for this model.
 
-reg_poly4 <- lm(ride_daily ~ poly(tmin,4), data=train)
-test$reg_poly4_hat <- predict(reg_poly4, newdata= test)
+reg_poly5 <- lm(ride_daily ~ poly(tmin,5), data=train)
+test$reg_poly5_hat <- predict(reg_poly5, newdata= test)
 
 test %>% ggplot( aes(tmin, ride_daily)) +
-  geom_line( aes(y= reg_poly4_hat)) +
+  geom_line( aes(y= reg_poly5_hat)) +
    geom_point()
 
 ```
