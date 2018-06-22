@@ -64,12 +64,16 @@ reg_quad <- lm(ride_daily ~ poly(tmin,2), data=train)
 summary(reg_quad)
 
 RMSEs <- c()
+RMSEs_tn <- c()
 r_sq_train <- c()
 r_sq_test <- c()
 
 for (i in 1:5) {
 reg_poly <- lm(ride_daily ~ poly(tmin,i), data=train)
 r_sq_train [i] <- c(summary(reg_poly)$r.square)
+
+RMSEtn <- rmse(reg_poly, train)
+RMSEs_tn[i] <- RMSEtn
 
 # Predict y
 
@@ -84,13 +88,20 @@ RMSEs[i] <- RMSE
 
 ```{r}
 df1 <- data.frame(r_sq_test, r_sq_train) 
-
-df2 <- df1 %>% mutate(poly_degree = seq.int(nrow(df1)))
+df1 <- df1 %>% mutate(poly_degree = seq.int(nrow(df1)))
    
 
-ggplot(aes(poly_degree), data=df2) + 
+ggplot(aes(poly_degree), data=df1) + 
   geom_line(aes(y=r_sq_train )) +
   geom_line(aes(y=r_sq_test), color= "red")
+
+df2 <- data.frame(RMSEs, RMSEs_tn) 
+df2 <- df2 %>% mutate(poly_degree = seq.int(nrow(df2)))
+
+ggplot(aes(poly_degree), data=df2) +
+  geom_line(aes(y=RMSEs_tn )) + 
+  geom_line(aes(y=RMSEs), color= "red")
+
 ```
 
 ```{r}
