@@ -93,7 +93,7 @@ train_ind <- sample(seq_len(nrow(oj)), size = smp_size)
 train <- data.frame(oj[train_ind, ])
 test <- data.frame(oj[-train_ind, ])
 
-interaction_reg_train <- lm(formula= logmove ~ logprice + brand + logprice*brand, data = train)
+interaction_reg_train <- lm(formula= logmove ~ log(price) + brand + log(price)*brand, data = train)
 summary(interaction_reg_train)
 
 y_hat <- predict(interaction_reg_train, newx = test)
