@@ -7,18 +7,18 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-##  predicting the total number of Citibike trips taken on a given day in the spring
 
-```{r seasonal}
+```{r }
 library(ggplot2)
 library(tidyverse)
 
-load('trips.RData')
+load('trips14.RData')
 holiday <- read.csv('US Bank Holidays 2012-2020.csv') %>% mutate(ymd = as.Date(Date, "%m/%d/%Y")) %>% select(ymd, Bank.Holiday)
 
-trip_per_day <- trips %>% group_by(ymd) %>% mutate(ride_daily = n())
-trip_weather <- left_join(trip_per_day,weather) %>% filter(date>0) %>% mutate(avg_temp= (tmax + tmin)/2, age= 2014 - birth_year)
-trip_w_holiday <- left_join(trip_weather, holiday) %>% replace_na(list(Bank.Holiday = "FALSE"))
+trip_per_day_14 <- trips %>% group_by(ymd) %>% summarise(ride_daily = n())
+trip_weather_14 <- left_join(trip_per_day_14,weather) %>% filter(date>0)
+trip_w_holiday_14 <- left_join(trip_weather_14, holiday) %>% replace_na(list(Bank.Holiday = "FALSE"))
+
 
 ```
 
@@ -27,42 +27,30 @@ set.seed(101)
 
 ## 80% of the sample size
 
-smp_size <- floor(0.8 * nrow(trip_w_holiday))
+smp_size <- floor(0.8 * nrow(trip_w_holiday_14))
 
 ## set the seed to make your partition reproducible
 
 
-train_ind <- sample(seq_len(nrow(trip_w_holiday)), size = smp_size)
+train_ind <- sample(seq_len(nrow(trip_w_holiday_14)), size = smp_size)
 
-train <- data.frame(trip_w_holiday[train_ind, ])
-test <- data.frame(trip_w_holiday[-train_ind, ])
+train <- data.frame(trip_w_holiday_14[train_ind, ])
+test <- data.frame(trip_w_holiday_14[-train_ind, ])
 
-
-reg1 <- lm(formula = ride_daily ~ avg_temp* gender * Bank.Holiday, data =train)
-summary(reg1)
-
-#Predict y
-test$reg_hat1 <- predict(reg1, newdata =test)
-R_square <- c()
-
-#Evaluating
-print(R_square <- c(cor(test$reg_hat1, test$ride_daily)^2))
-library(modelr)
-rmse(reg1, test)
-rmse(reg1, train)
 
 ```
 
-```{r model 2}
-reg2 <- lm(formula = ride_daily ~ avg_temp* I(avg_temp^2)* Bank.Holiday , data =train)
-summary(reg2)
+```{r model }
+reg <- lm(formula = ride_daily ~ tmax+ tmin * I(tmin^2) + prcp + snwd + Bank.Holiday  , data =train)
+summary(reg) #R-sq= .81
 
-test$reg_hat2 <- predict(reg2, newdata =test)
-R_quare <- cor(test$reg_hat2, test$ride_daily)^2
+test$reg_hat <- predict(reg, newdata =test)
+cor(test$reg_hat, test$ride_daily)^2 # 0.83
 
+library(modelr)
+rmse(reg, test) #4146.25
+rmse(reg, train) #4412.578
 
-rmse(reg2, test)
-rmse(reg2, train)
 ```
 
 ## Including Plots
@@ -72,69 +60,35 @@ Second, plot when the x-axis is the predicted value and the y-axis is the actual
 
 ```{r plot model 1}
 
-test %>% ggplot( aes(ymd, ride_daily, color= gender)) +
-  geom_line( aes(y= reg_hat1)) +
-   geom_point()+
+test %>% ggplot( aes(ymd, ride_daily, color= Bank.Holiday)) +
+  geom_line( aes(y= reg_hat)) +
+  geom_point()+
   xlab('Date') +
   ylab('Total ride daily')
+
 
 ```
 
 ```{r plot first model}
 #plot when the x-axis is the predicted value and the y-axis is the actual value, with each point representing one day.
 
-test %>% ggplot( aes(reg_hat1, ride_daily, color= gender)) +
-  geom_point() +
-  xlab('Predicted') +
-  ylab('Actual ride daily')
 
-```
-
-
-```{r plot model 2}
-
-test %>% ggplot( aes(ymd, ride_daily, color= Bank.Holiday)) +
-  geom_line( aes(y= reg_hat2)) +
-   geom_point()+
-  xlab('Date') +
-  ylab('Total ride daily')
-
-```
-
-```{r plot model 2}
-
-test %>% ggplot( aes(reg_hat2, ride_daily, color= Bank.Holiday)) +
-  geom_point() +
-  xlab('predicted') +
-  ylab('Actual ride daily')
-
-```
-```{r model 3}
-reg3 <- lm(formula = ride_daily ~ tmin* tmax * prcp * snwd + snow + Bank.Holiday, data =train)
-summary(reg3) #0.77
-
-test$reg_hat3 <- predict(reg3, newdata =test)
-cor(test$reg_hat3, test$ride_daily)^2 #0.77
-
-rmse(reg3, test) #4022.296
-rmse(reg3, train) #4020.63
-
-```
-
-
-```{r Plot model 3}
-test %>% ggplot( aes(ymd, ride_daily, color= Bank.Holiday)) +
-  geom_line( aes(y= reg_hat3)) +
-   geom_point()+
-  xlab('Date') +
-  ylab('Total ride daily')
-
-test %>% ggplot( aes(reg_hat3, ride_daily, color= Bank.Holiday)) +
+test %>% ggplot( aes(reg_hat, ride_daily, color= Bank.Holiday)) +
   geom_point() +
   xlab('predicted') +
   ylab('Actual ride daily')
 
 ```
 
-The interaction between tmax, prcp, snow depth is the highest predictive feature. So does the minimum temparature and snow depth, which is the the second highest predictive feature because it is the most elastic feature according to its coefficient.
+
+
+
+``````{r save model}
+
+mod_14 <- lm(formula = ride_daily ~ tmax+ tmin * I(tmin^2) + prcp + snwd + Bank.Holiday  , data = trip_w_holiday_14)
+summary(mod_14)
+save(mod_14, file= 'mod14.RData')
+
+```
+
 

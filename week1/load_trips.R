@@ -2,7 +2,7 @@ library(dplyr)
 library(readr)
 
 # define a function to turn strings into datetimes
-parse_datetime <- function(s, format="%Y-%m-%d %H:%M:%S") {
+parse_datetime <- function(s, format="%Y-%m-%d %H:%M") {
   as.POSIXct(as.character(s), format=format)
 }
 
@@ -21,8 +21,8 @@ for (csv in csvs) {
   # so manually convert the date from a string to a datetime
   if (typeof(tmp$starttime) == "character")
     tmp <- mutate(tmp,
-                  starttime=parse_datetime(starttime, "%m/%d/%Y %H:%M:%S"),
-                  stoptime=parse_datetime(stoptime, "%m/%d/%Y %H:%M:%S"))
+                  starttime=parse_datetime(starttime, "%m/%d/%Y %H:%M"),
+                  stoptime=parse_datetime(stoptime, "%m/%d/%Y %H:%M"))
 
   trips <- rbind(trips, tmp)
 }
@@ -44,15 +44,15 @@ trips <- mutate(trips, gender=factor(gender, levels=c(0,1,2), labels=c("Unknown"
 # https://www.ncei.noaa.gov/orders/cdo/762757.csv
 # ordered from
 # http://www.ncdc.noaa.gov/cdo-web/datasets/GHCND/stations/GHCND:USW00094728/detail
-weather <- read.table('weather.csv', header=T, sep=',')
+
+weather2015 <- read.table('weather_2015.csv', header=T, sep=',')
 
 # extract just a few columns, lowercase column names, and parse dates
-weather <- select(weather, DATE, PRCP, SNWD, SNOW, TMAX, TMIN)
-names(weather) <- tolower(names(weather))
-weather <- mutate(weather,
-                  ymd = as.Date(parse_datetime(date, "%Y%m%d")))
-weather <- tbl_df(weather)
+weather2015 <- select(weather2015, DATE, PRCP, SNWD, SNOW, TMAX, TMIN)
+names(weather2015) <- tolower(names(weather2015))
+weather2015 <- mutate(weather2015, ymd = as.Date(date))
+weather2015 <- tbl_df(weather2015)
 
 # save data frame for easy loading in the future
-save(trips, weather, file='trips.RData')
+save(trips, weather2015, file='trips.RData')
 

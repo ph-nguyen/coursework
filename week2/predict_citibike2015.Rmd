@@ -1,0 +1,38 @@
+---
+title: "predict_citibike2015"
+author: "Phoebe"
+date: "June 25, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r }
+library(ggplot2)
+library(tidyverse)
+library(modelr)
+
+load('trips.RData')
+holiday <- read.csv('US Bank Holidays 2012-2020.csv') %>% mutate(ymd = as.Date(Date, "%m/%d/%Y")) %>% select(ymd, Bank.Holiday)
+
+trip_per_day <- trips %>% group_by(ymd) %>% summarise(ride_daily = n())
+trip_weather <- left_join(trip_per_day,weather2015) %>% filter(tmin >0)
+trip_w_holiday <- left_join(trip_weather, holiday) %>% replace_na(list(Bank.Holiday = "FALSE")) 
+
+
+```
+
+```{r}
+load('../week1/mod14.RData')
+
+trip_w_holiday$y_hat <- predict(mod_14, trip_w_holiday)
+
+cor(trip_w_holiday$y_hat,trip_w_holiday$ride_daily)^2 
+
+library(modelr)
+
+rmse(mod_14, trip_w_holiday)
+
+```
