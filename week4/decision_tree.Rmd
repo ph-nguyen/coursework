@@ -1,0 +1,104 @@
+---
+title: "Decision Tree"
+author: "Phoebe"
+date: "July 2, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 
+
+```{r loading data}
+library(tree)
+library(ISLR)
+library(dplyr)
+
+titanic_train <- read.csv('../week3/titanic_train.csv')
+
+```
+
+## R Lab
+
+What percentage of passengers in our data set survived?  
+
+It's 38.38%
+
+```{r}
+total_passenger = nrow(titanic_train)
+p= (sum(titanic_train$Survived)/ total_passenger)*100
+
+```
+
+Which variables do you think may be good predictors of the survival on the Titanic? I'd say that sex, passenger class, and age range are good predictors for the survival.
+(Hint: You may want to turn the Survived variable into a factor using the factor() function.)
+
+```{r}
+titanic_train$age_bin = cut(titanic_train$Age, seq(0, 80, by= 10))
+logit6 <- glm(Survived ~ Sex * as.factor(Pclass) + age_bin , data = titanic_train, family = "binomial")
+summary(logit6)
+
+```
+
+Estimate a decision tree predicting survival using age and sex as predictors
+
+We see that the training error rate is 21.29% and residual mean deviance is 1.019. Since a small deviance indicates a tree that provides a good fit to the (training) data, I would say there are rooms for improvement.
+
+```{r}
+tree.survival1 <- tree(factor(Survived) ~ Age + Sex, titanic_train)
+summary(tree.survival1)
+plot(tree.survival1)
+text(tree.survival1,pretty=0)
+
+```
+
+Estimate a decision tree using age, sex and passenger class. Describe your results.
+We see that the training error rate is 19.61% and residual mean deviance decreased to 0.85. 
+
+```{r}
+tree.survival2 <- tree(factor(Survived) ~ Age + Sex + as.factor(Pclass), titanic_train)
+summary(tree.survival2)
+plot(tree.survival2)
+text(tree.survival2,pretty=0)
+
+```
+
+Estimate your own decision tree with your own set of predictors (you are, of course, free to include the predictors we used above). How accurate is your model on the training data? How does it compare to the models above?
+We see that the training error rate is now 18.63% and residual mean deviance is 0.82, which made it more accurate compare to other models. 
+
+```{r}
+tree.survival3 <- tree(factor(Survived) ~ Age + Sex + as.factor(Pclass) + SibSp, titanic_train)
+summary(tree.survival3)
+plot(tree.survival3)
+text(tree.survival3,pretty=0)
+
+```
+
+Download test data from this link. This is the test data from Kaggle, we actually don't know the true fate of the passengers in this data set. Use this data to make predictions for these passengers.
+
+```{r}
+
+library('readtext')
+titanic_text <- readtext('titanic_test.txt')
+comma = read.delim("titanic_test.txt", sep=",")
+write.table(comma, file="titanic_test.csv",sep=",",col.names=TRUE,row.names=FALSE)
+
+titanic_test <- read.csv('titanic_test.csv')
+
+tree.pred <- predict(tree.survival3,newdata=titanic_test,type="class")
+
+submit <- data.frame(survived = tree.pred, titanic_test) %>% select(survived, PassengerId)
+
+```
+
+Even though we don't know the fate of the passengers in the test data set, Kaggle does. In fact, Kaggle will evaluate our predictions and compare the accuracy of our predictions to those of other participants in the competition. All we have to do is register with Kaggle and create a .csv file that contains two columns: PassengerId and Survived. Where Survived contains our predictions 0 for did not survive, and 1 for survived. We can do this by first creating a data frame (let's call it submit) using function data.frame() with the two columns. 
+
+It should look something like this:submit <- data.frame(PassengerId = test$PassengerId, Survived = prediction) Second, we need to write a .csv file using function write.csv() This function takes a data frame to be written as its first argument, name of .csv file to be created as the second argument. We also need to use option row.names = FALSE to prevent the function from adding an additional column with row numbers. It should look something like this:  write.csv(submit, "C:/business analytics/labs/lab 12/Submission.csv", row.names = FALSE) Submit your predictions and report on your accuracy and rank compared to other participants. Take a screenshot and attach to your lab.
+
+```{r}
+write.csv(submit, "C:/Users/Phuong Nguyen/Documents/ds3/coursework/week4/Submission.csv", row.names = FALSE)
+
+```
+

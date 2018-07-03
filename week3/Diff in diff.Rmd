@@ -1,0 +1,62 @@
+---
+title: "Card & Krueger"
+author: "Phoebe"
+date: "June 28, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+library(dplyr)
+library(tidyverse)
+df <- read.csv("Card & Krueger (1994) - dataset.csv")
+
+```
+Treatment: e???ect of money spent on job training programs
+Outcome:  unemployment rate
+(a) Confounding variables: unemployment rate in 2008, wage_st, EMPFT, EMPPT, NCALLS
+(b) Variance-reducing variables: Location, recession, 
+(c) Unrelated variables: NREGS11,NREGS
+(d) Bad Controls: unemployment rate in 2009 or 2010
+
+
+## DiD with Card and Krueger (1993). 
+
+(a) Before looking at the data, look just at the list outcome metrics that were tracked in each interview (EMPFT EMPPT NMGRS WAGEST INCTIME FIRSTINC BONUS PCTAFF MEALS OPEN HRSOPEN PSODA PFRY PENTREE NREGS ). List the ones that you think could be impacted by the minimum wage change and give a brief explanation of why.
+
+A: the fulltime and parttime employees are directly affected by the minimum wage because employers are going to cut cost due to the increase. Hour open and time of openning are also affected because employers will also try to cut cost and short on staffs. Since workers just got a raise in minimum wage, the time until their next raise and their bonus will be affected negatively.
+
+
+(b) Compute the 'di???s'. Check to see if each outcome metric changed in a statistically signi???cant way between the two interviews. Do this analysis separately for PA and NJ. 
+
+```{r}
+#PA and NJ
+PA <- df %>% filter(PA1 == 1| PA2 ==1)
+NJ <- df  %>%  filter(SOUTHJ == 1| CENTRALJ ==1 | NORTHJ ==1)
+
+#Compute the Diffs
+
+
+```
+
+(c) Now compute the "di???-in-di???" via the regression method. As I mentioned previously, this step will be a little di???erent because the data is paired. 
+```{r}
+
+```
+
+(d) Do you believe this analysis provides de???nitive evidence on the impact of the minimum wage on employment? Can you imagine a scenario that would lead to this type of estimation giving biased results? 
+```{r}
+
+```
+
+(e) Card and Krueger create an Independent Variable called GAP = (5.05???Wpre)/Wpre, this is the percentage wage increase that New Jersey restaurants needed in order to meet the minimum wage. Use the variable WAGEST (from before the interview) to create this variable. How might restaurants with very large or small values of this variable di???er in their response to the minimum wage. Why do you think this variable is interesting? Run any other interesting analysis you can think of using this variable.
+```{r}
+
+```
+
+

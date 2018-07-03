@@ -1,0 +1,79 @@
+---
+title: "Q12.1 - Hypothesis Testing"
+author: "Phoebe"
+date: "June 27, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Let X be the measurement of change, the difference between the score of
+pain before the treatment and the score after the treatment, for patients
+that were treated with the inactive placebo. Express, in terms of the
+expected value of X, the null hypothesis and the alternative hypothesis
+for a statistical test to determine the presence of a placebo effect. 
+H0: E(X) = 0
+H1: E(X) <> 0
+
+To test the hypothese, we use the last 21 observations in the file "magnets.csv", which were the patient whom treated
+with devises that looked like magnets but actually were not.
+
+```{r read data}
+df <- read.csv("magnets.csv")
+placebo <- tail(df, 20)
+
+t.test(placebo$change)
+```
+According to the big t-test (>1.96) and significant p-value, we can reject null hypothesis and accept the alternative hypothesis, which is there is a change in pain level between pre and post treatment with placebo.
+
+## Chap 13 Comparing 2 samples
+
+1. Is there a significant difference between the treatment and the control groups in the expectation of the reported score of pain before the application of the device? 
+
+H0 : E(Xa) = E(Xb)
+Ha : E(Xa) <> E(Xb)
+
+```{r}
+
+t.test(df$score1 ~ df$active)
+
+```
+
+2. Is there a significance difference between the treatment and the control groups in the variance of the reported score of pain before the application of the device?
+```{r}
+
+var.test(df$score1 ~ df$active)
+
+```
+3. Is there a significance difference between the treatment and the control groups in the expectation of the change in score that resulted from the application of the device?
+It is significant so we reject null hypothesis and conclude that there is a difference.
+
+```{r}
+t.test(df$score2 ~ df$active )
+
+```
+4. Is there a significance difference between the treatment and the control
+groups in the variance of the change in score that resulted from the application
+of the device?
+It is changing the variation around the mean.
+```{r}
+var.test(df$score2 ~ df$active)
+```
+Make a plot of the distribution of outcomes (score1) split by the treatment (active), similar to this plot
+```{r}
+library(dplyr)
+library(tidyverse)
+df %>% ggplot(aes(fill= active)) + geom_histogram(aes(change), position = "dodge", alpha= 0.6)
+```
+
+Estimate the effect size by calculating Cohen's d. Think about whether the effect seems practically meaningful.
+```{r}
+
+stdv <- sd(df$change)
+df %>% group_by(active) %>% summarise(avg = mean(change), count = n()) %>%
+  summarise(cohen_d= (first(avg)-last(avg))/stdv)
+
+
+```

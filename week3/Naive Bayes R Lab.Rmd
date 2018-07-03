@@ -1,0 +1,53 @@
+---
+title: "Naive Bayes R Lab"
+author: "Phoebe"
+date: "June 26, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Suppose you have a database on four customers. You know their income and whether or not they bought your product. Create a data frame
+
+```{r dataframe}
+db <- data.frame(income=c("high","high","medium","low"), 
+                    buy=c("yes","no","no","yes"))
+
+```
+
+Using Bayes rule calculate the probability that a customer will buy your product given that he or she has high income.
+
+```{r bayes}
+library(e1071)
+classifier <- naiveBayes(buy ~ income,db)
+classifier
+
+```
+
+What is the prior probability of someone buying your product? What is the probability that a customer has a high income give that he or she bought your product?
+
+```{r}
+
+predict(classifier, data.frame(income= factor('high'), type = "raw"))
+
+```
+Using the model you estimated above predict the probability of buying given that a customer has high income. Is your result the same as the one you calculated by hand in question 1?
+
+Suppose you have a database on four customers. You know their gender, income and whether or not they bought your product. Create a data frame with this data.
+
+```{r dataframe}
+db2 <- data.frame(income=c("high","high","medium","low"), 
+                    buy=c("yes","no","no","yes"),
+                 gender=c("male","female","female", "male"))
+```
+Using Bayes rule calculate the probability that a customer will buy your product given that he has high income and male.
+```{r}
+
+classifier2 <- naiveBayes(buy ~ income + gender,db2)
+classifier2
+
+```
+
+```

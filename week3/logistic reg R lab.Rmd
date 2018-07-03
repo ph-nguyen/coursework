@@ -1,0 +1,117 @@
+---
+title: "Logistic Regression R Lab"
+author: "Phoebe"
+date: "June 26, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+What are the odds of surviving the shipwreck?
+
+```{r}
+library(dplyr)
+library(stargazer)
+library(caret)
+titanic <- read.csv('titanic_train.csv')
+str(titanic)
+```
+What are the odds of surviving the shipwreck? 38.38%
+
+Using the logit model, estimate how much lower are the odds of survival for men relative to women?
+
+```{r}
+
+total_passenger = nrow(titanic)
+p= (sum(titanic$Survived)/ total_passenger)*100
+odd = p/(1-p)
+
+logit1 <- glm(Survived ~ Sex, data = titanic, family = "binomial")
+summary(logit1)
+
+exp(coef(logit1))
+
+```
+The odds of survival for men is 92% lower relative to women.
+
+Controlling for gender, does age have a statistically significant effect on the odds of survival? If so, what is the magnitude of that effect?
+Age does not have statistically significant impact on the odds of survival. Holding sex constant, if the effect of raising age by 1 year decreases the odds of surviving by 1%
+
+```{r}
+logit2 <- glm(Survived ~ Sex + Age, data = titanic, family = "binomial")
+summary(logit2)
+exp(coef(logit2))
+
+```
+
+Controlling for gender, does passenger class have a statistically significant effect on the odds of survival? If so, what is the magnitude of that effect?
+Pclass does have statistically significant impact on the odds of survival. Holding sex constant, if the effect of raising the class by 1 unit decrease the odds of surviving by factor of 0.38, which is 62%.
+```{r}
+logit3 <- glm(Survived ~ Sex + Pclass, data = titanic, family = "binomial")
+summary(logit3)
+exp(coef(logit3))
+
+```
+
+Controlling for gender, estimate the effect of being in the second class relative to first class, and the effect of being in the third relative to first.
+Being in the second class has the odds of not surviving 57% relative to first class. The effect of being in the third will increase the odds of not surviving by 86% relative to the first.
+
+```{r}
+logit4 <- glm(Survived ~ Sex + as.factor(Pclass), data = titanic, family = "binomial")
+summary(logit4)
+exp(coef(logit4))
+
+```
+
+Add fare to the regression you estimated above. Is fare a significant determinant of survival controlling for gender and passenger class? No, Fare is not significant.
+Do you think that if we regressed survival on just gender and fare, fare would be significant? Yes, because fare and pclass has correlation. Removing pclass would also eliminate the effect it has on fare, hence, fare will become significant.
+
+```{r}
+logit5 <- glm(Survived ~ Sex + as.factor(Pclass) + Fare, data = titanic, family = "binomial")
+summary(logit5)
+
+```
+As we know from the movie, Jack traveled in the third class and paid 5 pounds (I know that Jack actually won the ticket in poker, but Swen, from whom Jack won the ticket, paid .). Rose traveled in the first class and paid 500 for her ticket (I know that her fiancee, Cal Hockley - Pittsburgh steel tycoon, actually bought the ticket, but .). What is the probability that Jack will survive? 9.46 What is the probability that Rose will survive? 9.5
+
+```{r}
+df <- data.frame(Name=c("Jack","Rose"), 
+                    Fare=c(5,500),
+                   Pclass= c(3,1),
+                   Sex= c("male","female")) 
+
+y_hat <- predict (logit5, newdata=df, type="response")
+
+y_hat
+
+```  
+
+Create your own logistic model and make predictions for passengers in the Titanic test data set. Keep in mind that you must make predictions for all passengers in the test data (even those with missing values). Use your own probability cut off for predicting survival (0.5 is a natural start). Did you do better with logistic regression than with decision trees? Which algorithm do you like better?
+
+```{r}
+library(tidyverse)
+set.seed(3)
+
+
+titanic$age_bin = cut(titanic$Age, seq(0, 80, by= 10))
+
+#titanic %>% replace_na(list(age_bin="missing"))
+            
+set.seed(3)
+
+sample <- sample(nrow(titanic),floor(nrow(titanic)*0.8))
+train <- titanic[sample,]
+test <- titanic[-sample,]
+
+
+logit6 <- glm(Survived ~ Sex * as.factor(Pclass) + age_bin , data = train, family = "binomial")
+summary(logit6)
+
+test$predict <- predict(logit6, test, type="response")
+
+test$surv_predict <- ifelse(test$predict > 0.50, 1, 0)
+
+confusionMatrix(as.factor(test$surv_predict), as.factor(test$Survived))
+
+```

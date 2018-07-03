@@ -1,0 +1,85 @@
+---
+title: "Regression Discontinuity"
+author: "Phoebe"
+date: "June 29, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##  Regression Discontinuity on Incumbency E???ect (Lee, 2007)
+
+
+
+```{r read data} 
+lee <- read.csv('Lee(2007)_RDReplication.csv')
+library(dplyr)
+library(tidyverse)
+```
+
+DemWin (whether or not dems win the current election) lets us know if democrats have the incumbency and it is our treatment of interest. Run a simple regression to try and predict DWinNxt with DemWin. Observe the coe???cient on DemWin. Do you think it gives an unbiased estimate of the incumbency e???ect. Why or why not? 
+The coefficient is positive and significant. It means that if Democrate won last term, they are predicted to have 91% chance to win next term.
+
+```{r}
+reg1 <- lm(DWinNxt ~ DemWin, data= lee)
+summary(reg1)  
+
+```
+Introduce some/all of these variables to your regression and see what happens to the coe???cient on DemWin. Di???DPct tells us how much Dems won/lost by in the previous election, this is our running variable that gives us a discontinuity. ForgnPct, GovWkPct, BlackPct, UrbanPct, DWinPrv, YearElec, and CDNum are potential control variables about each congressional district that can help us predict winners. 
+ 
+ Confounding: BlackPct, UrbanPct, ForgnPct, DWinPrv
+ 
+ Unrelated: CDNum, GovWkPct, YearElec
+ 
+
+```{r}
+df <- lee %>% select('ForgnPct', 'GovWkPct', 'BlackPct', 'UrbanPct', 'DWinPrv', 'YearElec', 'CDNumAtL', 'DemWin', 'DifDPct','DWinNxt')
+
+reg2 <- lm(DWinNxt ~ ForgnPct + BlackPct + DWinPrv + DemWin, data= df)
+summary(reg2) 
+
+df$y_hat <- predict(reg2,df)
+
+summary(df$y_hat)
+
+
+cor(na.omit(df$ForgnPct), na.omit(df$BlackPct))
+
+```
+
+(d) Give an additional example of a bad control variable in this setting. It does not have to be one that it is present in the dataset. 
+```{r}
+reg3 <- lm(DWinNxt ~ SoSDem , data= lee)
+summary(reg3)
+
+```
+(e) Now use DifDPct as a forcing variable to run a regression discontinuity to estimate the incumbency advantage. Generate a cubic polynomial and pick a window of 10% (this just means to drop data that is more than 15% from the discontinuity) on either side of the threshold (50%). Run a regression discontinuity. How does the coe???cient you got compare to in (b) and (c).
+DemWin is smaller than previous model. Hence, the incumbency is real but slightly less significant than the previous one.
+
+```{r}
+
+rd <- lee %>% filter(DifDPct > -10 & DifDPct < 10) 
+
+reg4 <- lm(DWinNxt ~ DemWin * poly (DifDPct, 3, raw= TRUE), data= rd)
+summary(reg4)
+
+rd$y_hat <- predict(reg4,rd)
+  
+rd %>% ggplot(aes(DifDPct, y_hat)) +
+  geom_point()+
+  geom_smooth(aes(color = factor(DemWin)))
+```
+(f) Finally, install and use the package rdd to implement this same regression discontinuity design (this saves you from having to decide on bandwidths and code polynomials). 
+Use the functions RDestimate and plot to do a faster regression discontinuity anlaysis. 
+Your answer in (e) should look somewhat similar to your answer here.
+
+The bandwidth is the window size. We want to have several bandwidths to pick and choose more variables. This will give us the control over the bias-variance trade-off.
+
+```{r}
+library('rdd')
+rds <- RDestimate(DWinNxt ~ DifDPct, rd)
+summary(rds)
+plot(rds)
+```
