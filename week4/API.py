@@ -3,6 +3,7 @@ import json
 import sys
 import time
 import os
+import codecs
 
 ARTICLE_SEARCH_URL = 'https://api.nytimes.com/svc/search/v2/articlesearch.json'
 
@@ -33,7 +34,7 @@ if __name__=='__main__':
     fileDir = r'C:\Users\Phuong Nguyen\Documents\ds3\coursework\week4'
     fullfilename = os.path.join(fileDir, filename)
     
-    f = open(fullfilename, 'w')
+    f = codecs.open(fullfilename, 'w', encoding='utf-8')
     f.write('\t'.join(heading) + '\n')
 
     for i in range(0,total_page):
@@ -47,12 +48,8 @@ if __name__=='__main__':
         for doc in data['response']['docs']:
             dataList = [section_name, doc['web_url'], doc['pub_date'], doc['snippet'].strip('\n')]
             f.write('\t'.join(dataList)+'\n') 
-        time.sleep(3)
+        time.sleep(1)
         print('page' + str(i))
         
     f.close()
-
-#You'll have to loop over pages of API results until you have enough articles
-#You'll want to remove any newlines from article snippets to keep each article on one line          
-        
 
